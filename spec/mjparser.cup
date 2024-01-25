@@ -50,7 +50,7 @@ scan with {:
 	return s;
 :}
 
-terminal PROGRAM, IDENTIFICATOR, LEFTBRACE, RIGHTBRACE, NAMESPACE, LEFTBRACKET, RIGHTBRACKET, LEFTPAREN, RIGHTPAREN, SEMICOLON, COMMA, STATIC ;
+terminal PROGRAM, LEFTBRACE, RIGHTBRACE, NAMESPACE, LEFTBRACKET, RIGHTBRACKET, LEFTPAREN, RIGHTPAREN, SEMICOLON, COMMA, STATIC ;
 
 terminal CONST, VOID, NEW, CLASS, EXTENDS, DOT, ARROW ;
 
@@ -62,27 +62,35 @@ nonterminal Program, NamespaceList, DeclarationList, Namespace, Declaration, Var
 
 nonterminal Constant, ConstDecl, ConstantList, ConstantDeclaration, VarList, Variable, StaticInitializer, StatementList ;
 
-nonterminal MethodDeclList, MethodDecl, MethodReturnType, MethodParamList, FormParsList, VarDeclList, OneParamMethod ;
+nonterminal MethodDeclList, MethodDecl, MethodReturnType, MethodParamList, FormParsList, VarDeclList, OneParamMethod, FactorNewType ;
 
-nonterminal Statement, DesignatorStatement, ForDesignatorStatement, InnerForDesignatorStatement, InnerForDesignatorStatementList, ForCondFact ;
+nonterminal Statement, DesignatorStatement, ForDesignatorStatement, InnerForDesignatorStatement, InnerForDesignatorStatementList, ForCondFact, MethodName ;
 
-nonterminal Designator, Expr, InsideFor, FirstDesignator, SecondDesignator, DesignatorList, OneDesignator, IdentExpressList, IdentExpressListElem ;
+nonterminal Designator, Expr, InsideFor, FirstDesignator, SecondDesignator, DesignatorList, OneDesignator, IdentExpressList, IdentExpressListElem, ArrayBrackets ;
 
-nonterminal Assignop, Relop, Addop, Mulop, ActParsList, ActPars, Condition, CondFact, CondTerm, Term, AddopTermList, Factor, FactorMulopList ;
+nonterminal DesignatorIdentificator, NamespaceName, Assignop, Relop, Addop, Mulop, ActParsList, ActPars, Condition, CondFact, CondTerm, Term, AddopTermList, Factor, FactorMulopList, ProgramName ;
 
-terminal String IDENT;
+nonterminal StatementElseStatement, StatementReturn, StatementPrint ;
+
+terminal String IDENTIFICATOR;
 terminal Character CHARCONSTANT;
 terminal Integer NUMCONSTANT;
 terminal Boolean BOOLCONSTANT;
 
-Program ::= PROGRAM IDENTIFICATOR NamespaceList DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE ;
+precedence left ELSE;
+
+Program ::= PROGRAM ProgramName NamespaceList DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE ;
+
+ProgramName ::= IDENTIFICATOR ;
 
 NamespaceList ::= NamespaceList Namespace
 				|
 					/*epsilon*/
 				;
 
-Namespace ::= NAMESPACE IDENTIFICATOR LEFTBRACE DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE RIGHTBRACE ;
+Namespace ::= NAMESPACE NamespaceName LEFTBRACE DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE RIGHTBRACE ;
+
+NamespaceName ::= IDENTIFICATOR ;
 
 DeclarationList ::= DeclarationList Declaration
 				|
@@ -119,7 +127,12 @@ VarList ::= VarList COMMA Variable
 			Variable
 			;
 
-Variable ::= IDENTIFICATOR LEFTBRACKET RIGHTBRACKET ;
+Variable ::= IDENTIFICATOR ArrayBrackets ;
+
+ArrayBrackets ::= (HasArrayBrackets) LEFTBRACKET RIGHTBRACKET
+					|
+				  (NoArrayBrackets) /*epsilon*/
+				  ;
 
 StaticInitializer ::= STATIC LEFTBRACE StatementList RIGHTBRACE ;
 
@@ -128,7 +141,9 @@ MethodDeclList ::= MethodDeclList MethodDecl
 					/*epsilon*/
 					;
 
-MethodDecl ::= MethodReturnType IDENTIFICATOR LEFTPAREN MethodParamList RIGHTPAREN VarDeclList LEFTBRACE StatementList RIGHTBRACE ;
+MethodDecl ::= MethodReturnType MethodName LEFTPAREN MethodParamList RIGHTPAREN VarDeclList LEFTBRACE StatementList RIGHTBRACE ;
+
+MethodName ::= IDENTIFICATOR ;
 
 MethodReturnType ::= Type | VOID ;
 
@@ -137,45 +152,57 @@ MethodParamList ::= FormParsList
 					/*epsilon*/
 					;
 
+
 FormParsList ::= FormParsList COMMA OneParamMethod
 				|
 				OneParamMethod
 				;
 
-OneParamMethod ::= Type IDENTIFICATOR LEFTBRACKET RIGHTBRACKET ;
+OneParamMethod ::= Type IDENTIFICATOR ArrayBrackets ;
 
 VarDeclList ::= VarDeclList VarDecl
 				|
 				/*epsilon*/
 				;
 				
-Type ::= IDENTIFICATOR ;
+Type ::= IDENTIFICATOR
+		 |
+		 IDENTIFICATOR DOUBLECOLON IDENTIFICATOR;
 
 Statement ::= DesignatorStatement SEMICOLON
 				|
-				IF LEFTPAREN Condition RIGHTPAREN
-				|
-				IF LEFTPAREN Condition RIGHTPAREN ELSE Statement
+				IF LEFTPAREN Condition RIGHTPAREN Statement StatementElseStatement
 				|
 				BREAK SEMICOLON
 				|
 				CONTINUE SEMICOLON
 				|
-				RETURN SEMICOLON
-				|
-				RETURN Expr SEMICOLON
+				RETURN StatementReturn
 				|
 				READ LEFTPAREN Designator RIGHTPAREN SEMICOLON
 				|
-				PRINT LEFTPAREN Expr RIGHTPAREN SEMICOLON
-				|
-				PRINT LEFTPAREN Expr COMMA NUMCONSTANT RIGHTPAREN SEMICOLON
+				PRINT LEFTPAREN Expr StatementPrint
 				|
 				FOR LEFTPAREN InsideFor RIGHTPAREN Statement
 				|
 				LEFTBRACE StatementList RIGHTBRACE
 			 	;
-				
+
+StatementElseStatement ::= ELSE Statement
+							|
+							/*epsilon*/
+							;
+
+StatementReturn ::= SEMICOLON
+					|
+					Expr SEMICOLON
+					;
+
+StatementPrint ::= RIGHTPAREN SEMICOLON
+					|
+				   COMMA NUMCONSTANT RIGHTPAREN SEMICOLON
+				   ;
+
 InsideFor ::= ForDesignatorStatement SEMICOLON ForCondFact SEMICOLON ForDesignatorStatement ;
 
 ForCondFact ::= CondFact 
@@ -190,7 +217,7 @@ ForDesignatorStatement ::= InnerForDesignatorStatement
 
 InnerForDesignatorStatement ::= DesignatorStatement InnerForDesignatorStatementList ;
 
-InnerForDesignatorStatementList ::= COMMA DesignatorStatement
+InnerForDesignatorStatementList ::= InnerForDesignatorStatementList COMMA DesignatorStatement
 									|
 									/*epsilon*/
 									;
@@ -258,12 +285,12 @@ AddopTermList ::= AddopTermList Addop Term
 				
 Term ::= Factor FactorMulopList ;
 
-FactorMulopList ::= Factor Mulop
+FactorMulopList ::= FactorMulopList Mulop Factor
 					|
 					/*epsilon*/
 					;
 
-Factor ::= Designator LEFTPAREN ActPars RIGHTPAREN
+Factor ::= Designator LEFTPAREN ActParsList RIGHTPAREN
 			|
 			Designator
 			|
@@ -273,32 +300,37 @@ Factor ::= Designator LEFTPAREN ActPars RIGHTPAREN
 			|
 			BOOLCONSTANT
 			|
-			NEW Type LEFTBRACKET Expr RIGHTBRACKET
-			|
-			NEW Type LEFTPAREN ActPars RIGHTPAREN
+			NEW Type FactorNewType
 			|
 			LEFTPAREN Expr RIGHTPAREN
 			;
-			
-ActParsList ::= ActParsList ActPars
+	
+FactorNewType ::= LEFTBRACKET Expr RIGHTBRACKET
+				  |
+				  LEFTPAREN ActPars RIGHTPAREN
+				  ;
+		
+ActParsList ::= ActPars
 				|
 				/*epsilon*/
 				;
-				
-Designator ::= 	IDENTIFICATOR DOUBLECOLON IDENTIFICATOR IdentExpressList 
-				|
-				IDENTIFICATOR IdentExpressList
-				;
+
+Designator ::= 	IDENTIFICATOR DesignatorIdentificator;
+			
+DesignatorIdentificator ::= DOUBLECOLON IDENTIFICATOR IdentExpressList
+							|
+							IdentExpressList
+							;
 
 IdentExpressList ::= IdentExpressList IdentExpressListElem
 					|
 					/*epsilon*/
 					;
-					
-IdentExpressListElem ::= 	COMMA IDENTIFICATOR
-							|
-							LEFTBRACKET Expr RIGHTBRACKET
-							;
+
+IdentExpressListElem ::= DOT IDENTIFICATOR
+						 |
+						 LEFTBRACKET Expr RIGHTBRACKET
+						 ;
 
 Label ::= IDENTIFICATOR ;
 
