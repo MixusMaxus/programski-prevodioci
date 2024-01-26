@@ -50,9 +50,9 @@ scan with {:
 	return s;
 :}
 
-terminal PROGRAM, IDENTIFICATOR, LEFTBRACE, RIGHTBRACE, NAMESPACE, LEFTBRACKET, RIGHTBRACKET, LEFTPAREN, RIGHTPAREN, SEMICOLON, COMMA, STATIC ;
+terminal PROGRAM, LEFTBRACE, RIGHTBRACE, NAMESPACE, LEFTBRACKET, RIGHTBRACKET, LEFTPAREN, RIGHTPAREN, SEMICOLON, COMMA, STATIC ;
 
-terminal CONST, VOID, NEW, CLASS, EXTENDS, DOT ;
+terminal CONST, VOID, NEW, CLASS, EXTENDS, DOT, ARROW ;
 
 terminal EQUAL, ISEQUAL, NOTEQUAL, GREATER, GREATEREQUAL, LESS, LESSEQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODUO, DOUBLECOLON ;
 
@@ -82,14 +82,16 @@ nonterminal MethodReturnType MethodReturnType;
 nonterminal MethodParamList MethodParamList;
 nonterminal FormParsList FormParsList;
 nonterminal VarDeclList VarDeclList;
-nonterminal OneParamMethod OneParamMethod ;
+nonterminal OneParamMethod OneParamMethod;
+nonterminal FactorNewType FactorNewType ;
 
 nonterminal Statement Statement;
 nonterminal DesignatorStatement DesignatorStatement;
 nonterminal ForDesignatorStatement ForDesignatorStatement;
 nonterminal InnerForDesignatorStatement InnerForDesignatorStatement;
 nonterminal InnerForDesignatorStatementList InnerForDesignatorStatementList;
-nonterminal ForCondFact ForCondFact ;
+nonterminal ForCondFact ForCondFact;
+nonterminal MethodName MethodName ;
 
 nonterminal Designator Designator;
 nonterminal Expr Expr;
@@ -99,8 +101,11 @@ nonterminal SecondDesignator SecondDesignator;
 nonterminal DesignatorList DesignatorList;
 nonterminal OneDesignator OneDesignator;
 nonterminal IdentExpressList IdentExpressList;
-nonterminal IdentExpressListElem IdentExpressListElem ;
+nonterminal IdentExpressListElem IdentExpressListElem;
+nonterminal ArrayBrackets ArrayBrackets ;
 
+nonterminal DesignatorIdentificator DesignatorIdentificator;
+nonterminal NamespaceName NamespaceName;
 nonterminal Assignop Assignop;
 nonterminal Relop Relop;
 nonterminal Addop Addop;
@@ -113,21 +118,32 @@ nonterminal CondTerm CondTerm;
 nonterminal Term Term;
 nonterminal AddopTermList AddopTermList;
 nonterminal Factor Factor;
-nonterminal FactorMulopList FactorMulopList ;
+nonterminal FactorMulopList FactorMulopList;
+nonterminal ProgramName ProgramName ;
 
-terminal String IDENT;
+nonterminal StatementElseStatement StatementElseStatement;
+nonterminal StatementReturn StatementReturn;
+nonterminal StatementPrint StatementPrint ;
+
+terminal String IDENTIFICATOR;
 terminal Character CHARCONSTANT;
 terminal Integer NUMCONSTANT;
 terminal Boolean BOOLCONSTANT;
 
-Program ::= PROGRAM IDENTIFICATOR NamespaceList:N1 DeclarationList:D2 LEFTBRACE MethodDeclList:M3 RIGHTBRACE {: RESULT=new ProgramDerived1(N1, D2, M3); RESULT.setLine(N1left); :} ;
+precedence left ELSE;
+
+Program ::= PROGRAM ProgramName:P1 NamespaceList:N2 DeclarationList:D3 LEFTBRACE MethodDeclList:M4 RIGHTBRACE {: RESULT=new ProgramDerived1(P1, N2, D3, M4); RESULT.setLine(P1left); :} ;
+
+ProgramName ::= IDENTIFICATOR:I1 {: RESULT=new ProgramNameDerived1(I1); RESULT.setLine(I1left); :} ;
 
 NamespaceList ::= NamespaceList:N1 Namespace:N2 {: RESULT=new NamespaceListDerived1(N1, N2); RESULT.setLine(N1left); :}
 				| {: RESULT=new NamespaceListDerived2(); :}
 					/*epsilon*/
 				;
 
-Namespace ::= NAMESPACE IDENTIFICATOR LEFTBRACE DeclarationList:D1 LEFTBRACE MethodDeclList:M2 RIGHTBRACE RIGHTBRACE {: RESULT=new NamespaceDerived1(D1, M2); RESULT.setLine(D1left); :} ;
+Namespace ::= NAMESPACE NamespaceName:N1 LEFTBRACE DeclarationList:D2 LEFTBRACE MethodDeclList:M3 RIGHTBRACE RIGHTBRACE {: RESULT=new NamespaceDerived1(N1, D2, M3); RESULT.setLine(N1left); :} ;
+
+NamespaceName ::= IDENTIFICATOR:I1 {: RESULT=new NamespaceNameDerived1(I1); RESULT.setLine(I1left); :} ;
 
 DeclarationList ::= DeclarationList:D1 Declaration:D2 {: RESULT=new DeclarationListDerived1(D1, D2); RESULT.setLine(D1left); :}
 				| {: RESULT=new DeclarationListDerived2(); :}
@@ -148,7 +164,7 @@ ConstantList ::= ConstantList:C1 COMMA ConstantDeclaration:C2 {: RESULT=new Cons
 				ConstantDeclaration:C1 {: RESULT=new ConstantListDerived2(C1); RESULT.setLine(C1left); :}
 				;
 
-ConstantDeclaration ::= IDENTIFICATOR EQUAL Constant:C1 {: RESULT=new ConstantDeclarationDerived1(C1); RESULT.setLine(C1left); :} ;
+ConstantDeclaration ::= IDENTIFICATOR:I1 EQUAL Constant:C2 {: RESULT=new ConstantDeclarationDerived1(I1, C2); RESULT.setLine(I1left); :} ;
 
 Constant ::= NUMCONSTANT:N1 {: RESULT=new ConstantDerived1(N1); RESULT.setLine(N1left); :} 
 			|
@@ -164,7 +180,15 @@ VarList ::= VarList:V1 COMMA Variable:V2 {: RESULT=new VarListDerived1(V1, V2); 
 			Variable:V1 {: RESULT=new VarListDerived2(V1); RESULT.setLine(V1left); :}
 			;
 
-Variable ::= IDENTIFICATOR LEFTBRACKET RIGHTBRACKET {: RESULT=new VariableDerived1(); :} ;
+Variable ::= (VariableName) IDENTIFICATOR:I1 ArrayBrackets:A2 {: RESULT=new VariableName(I1, A2); RESULT.setLine(I1left); :}
+				|
+				error SEMICOLON:l {: parser.report_error("Greska kod deklaracije promenljive na liniji " + lleft, null); :} {: RESULT=new VariableDerived1(); :}
+				;
+
+ArrayBrackets ::= (HasArrayBrackets) LEFTBRACKET RIGHTBRACKET {: RESULT=new HasArrayBrackets(); :}
+					|
+				  (NoArrayBrackets) {: RESULT=new NoArrayBrackets(); :} /*epsilon*/
+				  ;
 
 StaticInitializer ::= STATIC LEFTBRACE StatementList:S1 RIGHTBRACE {: RESULT=new StaticInitializerDerived1(S1); RESULT.setLine(S1left); :} ;
 
@@ -173,7 +197,9 @@ MethodDeclList ::= MethodDeclList:M1 MethodDecl:M2 {: RESULT=new MethodDeclListD
 					/*epsilon*/
 					;
 
-MethodDecl ::= MethodReturnType:M1 IDENTIFICATOR LEFTPAREN MethodParamList:M2 RIGHTPAREN VarDeclList:V3 LEFTBRACE StatementList:S4 RIGHTBRACE {: RESULT=new MethodDeclDerived1(M1, M2, V3, S4); RESULT.setLine(M1left); :} ;
+MethodDecl ::= MethodReturnType:M1 MethodName:M2 LEFTPAREN MethodParamList:M3 RIGHTPAREN VarDeclList:V4 LEFTBRACE StatementList:S5 RIGHTBRACE {: RESULT=new MethodDeclDerived1(M1, M2, M3, V4, S5); RESULT.setLine(M1left); :} ;
+
+MethodName ::= IDENTIFICATOR:I1 {: RESULT=new MethodNameDerived1(I1); RESULT.setLine(I1left); :} ;
 
 MethodReturnType ::= Type:T1 {: RESULT=new MethodReturnTypeDerived1(T1); RESULT.setLine(T1left); :} | VOID {: RESULT=new MethodReturnTypeDerived2(); :} ;
 
@@ -182,45 +208,60 @@ MethodParamList ::= FormParsList:F1 {: RESULT=new MethodParamListDerived1(F1); R
 					/*epsilon*/
 					;
 
+
 FormParsList ::= FormParsList:F1 COMMA OneParamMethod:O2 {: RESULT=new FormParsListDerived1(F1, O2); RESULT.setLine(F1left); :}
 				|
 				OneParamMethod:O1 {: RESULT=new FormParsListDerived2(O1); RESULT.setLine(O1left); :}
 				;
 
-OneParamMethod ::= Type:T1 IDENTIFICATOR LEFTBRACKET RIGHTBRACKET {: RESULT=new OneParamMethodDerived1(T1); RESULT.setLine(T1left); :} ;
+OneParamMethod ::= Type:T1 IDENTIFICATOR:I2 ArrayBrackets:A3 {: RESULT=new OneParamMethodDerived1(T1, I2, A3); RESULT.setLine(T1left); :}
+					|
+				   error RIGHTPAREN:l   {: parser.report_error("Greska kod deklaracije formalnog parametra funkcije na liniji. " + lleft, null); :} {: RESULT=new OneParamMethodDerived2(); :} 
+				   ;
 
 VarDeclList ::= VarDeclList:V1 VarDecl:V2 {: RESULT=new VarDeclListDerived1(V1, V2); RESULT.setLine(V1left); :}
 				| {: RESULT=new VarDeclListDerived2(); :}
 				/*epsilon*/
 				;
 				
-Type ::= IDENTIFICATOR {: RESULT=new TypeDerived1(); :} ;
+Type ::= IDENTIFICATOR:I1 {: RESULT=new TypeDerived1(I1); RESULT.setLine(I1left); :}
+		 |
+		 IDENTIFICATOR:I1 DOUBLECOLON IDENTIFICATOR:I2 {: RESULT=new TypeDerived2(I1, I2); RESULT.setLine(I1left); :};
 
 Statement ::= DesignatorStatement:D1 SEMICOLON {: RESULT=new StatementDerived1(D1); RESULT.setLine(D1left); :}
 				|
-				IF LEFTPAREN Condition:C1 RIGHTPAREN {: RESULT=new StatementDerived2(C1); RESULT.setLine(C1left); :}
+				IF LEFTPAREN Condition:C1 RIGHTPAREN Statement:S2 StatementElseStatement:S3 {: RESULT=new StatementDerived2(C1, S2, S3); RESULT.setLine(C1left); :}
 				|
-				IF LEFTPAREN Condition:C1 RIGHTPAREN ELSE Statement:S2 {: RESULT=new StatementDerived3(C1, S2); RESULT.setLine(C1left); :}
+				BREAK SEMICOLON {: RESULT=new StatementDerived3(); :}
 				|
-				BREAK SEMICOLON {: RESULT=new StatementDerived4(); :}
+				CONTINUE SEMICOLON {: RESULT=new StatementDerived4(); :}
 				|
-				CONTINUE SEMICOLON {: RESULT=new StatementDerived5(); :}
+				RETURN StatementReturn:S1 {: RESULT=new StatementDerived5(S1); RESULT.setLine(S1left); :}
 				|
-				RETURN SEMICOLON {: RESULT=new StatementDerived6(); :}
+				READ LEFTPAREN Designator:D1 RIGHTPAREN SEMICOLON {: RESULT=new StatementDerived6(D1); RESULT.setLine(D1left); :}
 				|
-				RETURN Expr:E1 SEMICOLON {: RESULT=new StatementDerived7(E1); RESULT.setLine(E1left); :}
+				PRINT LEFTPAREN Expr:E1 StatementPrint:S2 {: RESULT=new StatementDerived7(E1, S2); RESULT.setLine(E1left); :}
 				|
-				READ LEFTPAREN Designator:D1 RIGHTPAREN SEMICOLON {: RESULT=new StatementDerived8(D1); RESULT.setLine(D1left); :}
+				FOR LEFTPAREN InsideFor:I1 RIGHTPAREN Statement:S2 {: RESULT=new StatementDerived8(I1, S2); RESULT.setLine(I1left); :}
 				|
-				PRINT LEFTPAREN Expr:E1 RIGHTPAREN SEMICOLON {: RESULT=new StatementDerived9(E1); RESULT.setLine(E1left); :}
-				|
-				PRINT LEFTPAREN Expr:E1 COMMA NUMCONSTANT:N2 RIGHTPAREN SEMICOLON {: RESULT=new StatementDerived10(E1, N2); RESULT.setLine(E1left); :}
-				|
-				FOR LEFTPAREN InsideFor:I1 RIGHTPAREN Statement:S2 {: RESULT=new StatementDerived11(I1, S2); RESULT.setLine(I1left); :}
-				|
-				LEFTBRACE StatementList:S1 RIGHTBRACE {: RESULT=new StatementDerived12(S1); RESULT.setLine(S1left); :}
+				LEFTBRACE StatementList:S1 RIGHTBRACE {: RESULT=new StatementDerived9(S1); RESULT.setLine(S1left); :}
 			 	;
-				
+
+StatementElseStatement ::= ELSE Statement:S1 {: RESULT=new StatementElseStatementDerived1(S1); RESULT.setLine(S1left); :}
+							| {: RESULT=new StatementElseStatementDerived2(); :}
+							/*epsilon*/
+							;
+
+StatementReturn ::= SEMICOLON {: RESULT=new StatementReturnDerived1(); :}
+					|
+					Expr:E1 SEMICOLON {: RESULT=new StatementReturnDerived2(E1); RESULT.setLine(E1left); :}
+					;
+
+StatementPrint ::= (StatementPrintIme) RIGHTPAREN SEMICOLON {: RESULT=new StatementPrintIme(); :}
+					|
+				   COMMA NUMCONSTANT:N1 RIGHTPAREN SEMICOLON {: RESULT=new StatementPrintDerived1(N1); RESULT.setLine(N1left); :}
+				   ;
+
 InsideFor ::= ForDesignatorStatement:F1 SEMICOLON ForCondFact:F2 SEMICOLON ForDesignatorStatement:F3 {: RESULT=new InsideForDerived1(F1, F2, F3); RESULT.setLine(F1left); :} ;
 
 ForCondFact ::= CondFact:C1 {: RESULT=new ForCondFactDerived1(C1); RESULT.setLine(C1left); :} 
@@ -235,7 +276,7 @@ ForDesignatorStatement ::= InnerForDesignatorStatement:I1 {: RESULT=new ForDesig
 
 InnerForDesignatorStatement ::= DesignatorStatement:D1 InnerForDesignatorStatementList:I2 {: RESULT=new InnerForDesignatorStatementDerived1(D1, I2); RESULT.setLine(D1left); :} ;
 
-InnerForDesignatorStatementList ::= COMMA DesignatorStatement:D1 {: RESULT=new InnerForDesignatorStatementListDerived1(D1); RESULT.setLine(D1left); :}
+InnerForDesignatorStatementList ::= InnerForDesignatorStatementList:I1 COMMA DesignatorStatement:D2 {: RESULT=new InnerForDesignatorStatementListDerived1(I1, D2); RESULT.setLine(I1left); :}
 									| {: RESULT=new InnerForDesignatorStatementListDerived2(); :}
 									/*epsilon*/
 									;
@@ -279,6 +320,8 @@ ActPars ::= ActPars:A1 COMMA Expr:E2 {: RESULT=new ActParsDerived1(A1, E2); RESU
 Condition ::= Condition:C1 OR CondTerm:C2 {: RESULT=new ConditionDerived1(C1, C2); RESULT.setLine(C1left); :}
 				|
 				CondTerm:C1 {: RESULT=new ConditionDerived2(C1); RESULT.setLine(C1left); :}
+				|
+				error RIGHTPAREN:l   {: parser.report_error("Greska kod logickog izraza unutar if konstrukcije na liniji. " + lleft, null); :} {: RESULT=new ConditionDerived3(); :} 
 				;
 				
 CondTerm ::= CondTerm:C1 AND CondFact:C2 {: RESULT=new CondTermDerived1(C1, C2); RESULT.setLine(C1left); :}
@@ -303,12 +346,12 @@ AddopTermList ::= AddopTermList:A1 Addop:A2 Term:T3 {: RESULT=new AddopTermListD
 				
 Term ::= Factor:F1 FactorMulopList:F2 {: RESULT=new TermDerived1(F1, F2); RESULT.setLine(F1left); :} ;
 
-FactorMulopList ::= Factor:F1 Mulop:M2 {: RESULT=new FactorMulopListDerived1(F1, M2); RESULT.setLine(F1left); :}
+FactorMulopList ::= FactorMulopList:F1 Mulop:M2 Factor:F3 {: RESULT=new FactorMulopListDerived1(F1, M2, F3); RESULT.setLine(F1left); :}
 					| {: RESULT=new FactorMulopListDerived2(); :}
 					/*epsilon*/
 					;
 
-Factor ::= Designator:D1 LEFTPAREN ActPars:A2 RIGHTPAREN {: RESULT=new FactorDerived1(D1, A2); RESULT.setLine(D1left); :}
+Factor ::= Designator:D1 LEFTPAREN ActParsList:A2 RIGHTPAREN {: RESULT=new FactorDerived1(D1, A2); RESULT.setLine(D1left); :}
 			|
 			Designator:D1 {: RESULT=new FactorDerived2(D1); RESULT.setLine(D1left); :}
 			|
@@ -318,36 +361,44 @@ Factor ::= Designator:D1 LEFTPAREN ActPars:A2 RIGHTPAREN {: RESULT=new FactorDer
 			|
 			BOOLCONSTANT:B1 {: RESULT=new FactorDerived5(B1); RESULT.setLine(B1left); :}
 			|
-			NEW Type:T1 LEFTBRACKET Expr:E2 RIGHTBRACKET {: RESULT=new FactorDerived6(T1, E2); RESULT.setLine(T1left); :}
+			NEW Type:T1 FactorNewType:F2 {: RESULT=new FactorDerived6(T1, F2); RESULT.setLine(T1left); :}
 			|
-			NEW Type:T1 LEFTPAREN ActPars:A2 RIGHTPAREN {: RESULT=new FactorDerived7(T1, A2); RESULT.setLine(T1left); :}
-			|
-			LEFTPAREN Expr:E1 RIGHTPAREN {: RESULT=new FactorDerived8(E1); RESULT.setLine(E1left); :}
+			LEFTPAREN Expr:E1 RIGHTPAREN {: RESULT=new FactorDerived7(E1); RESULT.setLine(E1left); :}
 			;
-			
-ActParsList ::= ActParsList:A1 ActPars:A2 {: RESULT=new ActParsListDerived1(A1, A2); RESULT.setLine(A1left); :}
+	
+FactorNewType ::= LEFTBRACKET Expr:E1 RIGHTBRACKET {: RESULT=new FactorNewTypeDerived1(E1); RESULT.setLine(E1left); :}
+				  |
+				  LEFTPAREN ActPars:A1 RIGHTPAREN {: RESULT=new FactorNewTypeDerived2(A1); RESULT.setLine(A1left); :}
+				  ;
+		
+ActParsList ::= ActPars:A1 {: RESULT=new ActParsListDerived1(A1); RESULT.setLine(A1left); :}
 				| {: RESULT=new ActParsListDerived2(); :}
 				/*epsilon*/
 				;
-				
-Designator ::= 	IDENTIFICATOR DOUBLECOLON IDENTIFICATOR IdentExpressList:I1 {: RESULT=new DesignatorDerived1(I1); RESULT.setLine(I1left); :} 
-				|
-				IDENTIFICATOR IdentExpressList:I1 {: RESULT=new DesignatorDerived2(I1); RESULT.setLine(I1left); :}
-				;
+
+Designator ::= 	IDENTIFICATOR:I1 DesignatorIdentificator:D2 {: RESULT=new DesignatorDerived1(I1, D2); RESULT.setLine(I1left); :};
+			
+DesignatorIdentificator ::= DOUBLECOLON IDENTIFICATOR:I1 IdentExpressList:I2 {: RESULT=new DesignatorIdentificatorDerived1(I1, I2); RESULT.setLine(I1left); :}
+							|
+							IdentExpressList:I1 {: RESULT=new DesignatorIdentificatorDerived2(I1); RESULT.setLine(I1left); :}
+							;
 
 IdentExpressList ::= IdentExpressList:I1 IdentExpressListElem:I2 {: RESULT=new IdentExpressListDerived1(I1, I2); RESULT.setLine(I1left); :}
 					| {: RESULT=new IdentExpressListDerived2(); :}
 					/*epsilon*/
 					;
-					
-IdentExpressListElem ::= 	COMMA IDENTIFICATOR {: RESULT=new IdentExpressListElemDerived1(); :}
-							|
-							LEFTBRACKET Expr:E1 RIGHTBRACKET {: RESULT=new IdentExpressListElemDerived2(E1); RESULT.setLine(E1left); :}
-							;
 
-Label ::= IDENTIFICATOR {: RESULT=new LabelDerived1(); :} ;
+IdentExpressListElem ::= DOT IDENTIFICATOR:I1 {: RESULT=new IdentExpressListElemDerived1(I1); RESULT.setLine(I1left); :}
+						 |
+						 LEFTBRACKET Expr:E1 RIGHTBRACKET {: RESULT=new IdentExpressListElemDerived2(E1); RESULT.setLine(E1left); :}
+						 ;
 
-Assignop ::= EQUAL {: RESULT=new AssignopDerived1(); :} ;
+Label ::= IDENTIFICATOR:I1 {: RESULT=new LabelDerived1(I1); RESULT.setLine(I1left); :} ;
+
+Assignop ::= EQUAL {: RESULT=new AssignopDerived1(); :}
+			|
+			error SEMICOLON:l {: parser.report_error("Greska kod dodele vrednosti na liniji " + lleft, null); :} {: RESULT=new AssignopDerived2(); :}
+			;
 
 Relop ::= ISEQUAL {: RESULT=new RelopDerived1(); :} | NOTEQUAL {: RESULT=new RelopDerived2(); :} | GREATER {: RESULT=new RelopDerived3(); :} | GREATEREQUAL {: RESULT=new RelopDerived4(); :} | LESS {: RESULT=new RelopDerived5(); :} | LESSEQUAL {: RESULT=new RelopDerived6(); :} ;
 

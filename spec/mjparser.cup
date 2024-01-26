@@ -127,7 +127,10 @@ VarList ::= VarList COMMA Variable
 			Variable
 			;
 
-Variable ::= IDENTIFICATOR ArrayBrackets ;
+Variable ::= (VariableName) IDENTIFICATOR ArrayBrackets
+				|
+				error SEMICOLON:l {: parser.report_error("Greska kod deklaracije promenljive na liniji " + lleft, null); :}
+				;
 
 ArrayBrackets ::= (HasArrayBrackets) LEFTBRACKET RIGHTBRACKET
 					|
@@ -158,7 +161,10 @@ FormParsList ::= FormParsList COMMA OneParamMethod
 				OneParamMethod
 				;
 
-OneParamMethod ::= Type IDENTIFICATOR ArrayBrackets ;
+OneParamMethod ::= Type IDENTIFICATOR ArrayBrackets
+					|
+				   error RIGHTPAREN:l   {: parser.report_error("Greska kod deklaracije formalnog parametra funkcije na liniji. " + lleft, null); :} 
+				   ;
 
 VarDeclList ::= VarDeclList VarDecl
 				|
@@ -198,7 +204,7 @@ StatementReturn ::= SEMICOLON
 					Expr SEMICOLON
 					;
 
-StatementPrint ::= RIGHTPAREN SEMICOLON
+StatementPrint ::= (StatementPrintIme) RIGHTPAREN SEMICOLON
 					|
 				   COMMA NUMCONSTANT RIGHTPAREN SEMICOLON
 				   ;
@@ -261,6 +267,8 @@ ActPars ::= ActPars COMMA Expr
 Condition ::= Condition OR CondTerm
 				|
 				CondTerm
+				|
+				error RIGHTPAREN:l   {: parser.report_error("Greska kod logickog izraza unutar if konstrukcije na liniji. " + lleft, null); :} 
 				;
 				
 CondTerm ::= CondTerm AND CondFact
@@ -334,7 +342,10 @@ IdentExpressListElem ::= DOT IDENTIFICATOR
 
 Label ::= IDENTIFICATOR ;
 
-Assignop ::= EQUAL ;
+Assignop ::= EQUAL
+			|
+			error SEMICOLON:l {: parser.report_error("Greska kod dodele vrednosti na liniji " + lleft, null); :}
+			;
 
 Relop ::= ISEQUAL | NOTEQUAL | GREATER | GREATEREQUAL | LESS | LESSEQUAL ;
 

@@ -1,0 +1,7 @@
+INFO  16:17:22,471 - Compiling source file: C:\Users\Omen\Desktop\Skola\PP1\pp1Projekat\workspace\MJCompiler\test\test302.mj
+INFO  16:17:22,532 - #2 program
+INFO  16:17:22,532 - #46 test302
+INFO  16:17:22,532 - #10 ;
+ERROR 16:17:22,532 - 
+Sintaksna greska na liniji 3
+ERROR 16:17:22,532 - Fatalna greska, parsiranje se ne moze nastaviti na liniji 3

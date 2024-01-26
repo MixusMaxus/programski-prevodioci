@@ -1,0 +1,4 @@
+INFO  16:17:52,857 - Compiling source file: C:\Users\Omen\Desktop\Skola\PP1\pp1Projekat\workspace\MJCompiler\test\test302.mj
+ERROR 16:17:52,920 - 
+Sintaksna greska na liniji 2
+ERROR 16:17:52,921 - Fatalna greska, parsiranje se ne moze nastaviti na liniji 2

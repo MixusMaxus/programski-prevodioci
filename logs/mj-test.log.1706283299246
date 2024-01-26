@@ -1,0 +1,18 @@
+INFO  16:34:10,400 - Compiling source file: C:\Users\Omen\Desktop\Skola\PP1\pp1Projekat\workspace\MJCompiler\test\test302.mj
+INFO  16:34:10,461 - #2 program
+INFO  16:34:10,461 - #46 p
+INFO  16:34:10,461 - #3 {
+INFO  16:34:10,462 - #4 }
+INFO  16:34:10,463 - ProgramDerived1(
+  ProgramNameDerived1(
+   p
+  ) [ProgramNameDerived1]
+  NamespaceListDerived2(
+  ) [NamespaceListDerived2]
+  DeclarationListDerived2(
+  ) [DeclarationListDerived2]
+  MethodDeclListDerived2(
+  ) [MethodDeclListDerived2]
+) [ProgramDerived1]
+INFO  16:34:10,463 - ===================================
+INFO  16:34:10,467 -  Print count calls = 0
