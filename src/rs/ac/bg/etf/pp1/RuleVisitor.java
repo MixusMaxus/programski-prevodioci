@@ -17,7 +17,7 @@ public class RuleVisitor extends VisitorAdaptor{
     	varDeclCount++;
     }*/
 	
-    public void visit(StatementPrintIme print) {
+    public void visit(StmtPrintBasic print) {
 		printCallCount++;
 		log.info("Nadjen print");
 	}

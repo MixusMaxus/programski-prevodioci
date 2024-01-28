@@ -70,7 +70,7 @@ nonterminal Designator, Expr, InsideFor, FirstDesignator, SecondDesignator, Desi
 
 nonterminal DesignatorIdentificator, NamespaceName, Assignop, Relop, Addop, Mulop, ActParsList, ActPars, Condition, CondFact, CondTerm, Term, AddopTermList, Factor, FactorMulopList, ProgramName ;
 
-nonterminal StatementElseStatement, StatementReturn, StatementPrint ;
+nonterminal StatementElseStatement, StatementReturn, StatementPrint, CondFactExprRelopExpr, FactorDesignatorActParsList ;
 
 terminal String IDENTIFICATOR;
 terminal Character CHARCONSTANT;
@@ -79,52 +79,52 @@ terminal Boolean BOOLCONSTANT;
 
 precedence left ELSE;
 
-Program ::= PROGRAM ProgramName NamespaceList DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE ;
+Program ::= (Program) PROGRAM ProgramName NamespaceList DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE ;
 
-ProgramName ::= IDENTIFICATOR ;
+ProgramName ::= (ProgramName) IDENTIFICATOR ;
 
-NamespaceList ::= NamespaceList Namespace
+NamespaceList ::= (MultipleNamespaces) NamespaceList Namespace
+				   |
+				  (NoNamespaces) /*epsilon*/
+				   ;
+
+Namespace ::= (Namespace) NAMESPACE NamespaceName LEFTBRACE DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE RIGHTBRACE ;
+
+NamespaceName ::= (NamespaceName) IDENTIFICATOR ;
+
+DeclarationList ::= (MultipleDeclarations) DeclarationList Declaration
+				    |
+					(NoDeclarations)/*epsilon*/
+				    ;
+
+Declaration ::= (DeclarationConstDecl) ConstDecl 
 				|
-					/*epsilon*/
-				;
-
-Namespace ::= NAMESPACE NamespaceName LEFTBRACE DeclarationList LEFTBRACE MethodDeclList RIGHTBRACE RIGHTBRACE ;
-
-NamespaceName ::= IDENTIFICATOR ;
-
-DeclarationList ::= DeclarationList Declaration
-				|
-					/*epsilon*/
-				;
-
-Declaration ::= ConstDecl 
-				|
-				 VarDecl 
+				(DeclarationVarDecl) VarDecl 
 				/*|
 				 ClassDecl*/
 				;
 				
-ConstDecl ::= CONST Type ConstantList SEMICOLON ;
+ConstDecl ::= (ConstDecl) CONST Type ConstantList SEMICOLON ;
 
-ConstantList ::= ConstantList COMMA ConstantDeclaration 
+ConstantList ::= (MultipleConstants) ConstantList COMMA ConstantDeclaration 
 				|
-				ConstantDeclaration
+				(OneConstant) ConstantDeclaration
 				;
 
-ConstantDeclaration ::= IDENTIFICATOR EQUAL Constant ;
+ConstantDeclaration ::= (ConstantDeclaration) IDENTIFICATOR EQUAL Constant ;
 
-Constant ::= NUMCONSTANT 
+Constant ::= (NumberConstant) NUMCONSTANT 
 			|
-			CHARCONSTANT  
+			(CharacterConstant) CHARCONSTANT  
 			|
-			BOOLCONSTANT 
+			(BooleanConstant) BOOLCONSTANT 
 			;
 			
-VarDecl ::= Type VarList SEMICOLON ;
+VarDecl ::= (VarDecl) Type VarList SEMICOLON ;
 
-VarList ::= VarList COMMA Variable 
+VarList ::= (MultipleVariables) VarList COMMA Variable 
 			|
-			Variable
+			(OneVariable) Variable
 			;
 
 Variable ::= (VariableName) IDENTIFICATOR ArrayBrackets
@@ -137,218 +137,245 @@ ArrayBrackets ::= (HasArrayBrackets) LEFTBRACKET RIGHTBRACKET
 				  (NoArrayBrackets) /*epsilon*/
 				  ;
 
-StaticInitializer ::= STATIC LEFTBRACE StatementList RIGHTBRACE ;
+StaticInitializer ::= (StaticInitializer) STATIC LEFTBRACE StatementList RIGHTBRACE ;
 
-MethodDeclList ::= MethodDeclList MethodDecl
+MethodDeclList ::= (MultipleMethodDeclarations) MethodDeclList MethodDecl
 					|
-					/*epsilon*/
+					(NoMethodDeclarations) /*epsilon*/
 					;
 
-MethodDecl ::= MethodReturnType MethodName LEFTPAREN MethodParamList RIGHTPAREN VarDeclList LEFTBRACE StatementList RIGHTBRACE ;
+MethodDecl ::= (MethodDecl) MethodReturnType MethodName LEFTPAREN MethodParamList RIGHTPAREN VarDeclList LEFTBRACE StatementList RIGHTBRACE ;
 
-MethodName ::= IDENTIFICATOR ;
+MethodName ::= (MethodName) IDENTIFICATOR ;
 
-MethodReturnType ::= Type | VOID ;
+MethodReturnType ::= (MethodReturnTypeType)Type 
+					  | 
+					 (MethodReturnTypeVoid)VOID ;
 
-MethodParamList ::= FormParsList 
+MethodParamList ::= (MultipleMethodParamethers) FormParsList 
 					|
-					/*epsilon*/
+					(NoMethodParamethers) /*epsilon*/
 					;
 
 
-FormParsList ::= FormParsList COMMA OneParamMethod
+FormParsList ::= (MultipleFormParamethers) FormParsList COMMA OneParamMethod
 				|
-				OneParamMethod
+				(OneFormParamether) OneParamMethod
 				;
 
-OneParamMethod ::= Type IDENTIFICATOR ArrayBrackets
+OneParamMethod ::= (OneParametherMethod) Type IDENTIFICATOR ArrayBrackets
 					|
-				   error RIGHTPAREN:l   {: parser.report_error("Greska kod deklaracije formalnog parametra funkcije na liniji. " + lleft, null); :} 
+				   (OneParametherMethodError) error RIGHTPAREN:l   {: parser.report_error("Greska kod deklaracije formalnog parametra funkcije na liniji. " + lleft, null); :} 
 				   ;
 
-VarDeclList ::= VarDeclList VarDecl
+VarDeclList ::= (MultipleVarDeclarations) VarDeclList VarDecl
 				|
-				/*epsilon*/
+				(NoVarDeclarations) /*epsilon*/
 				;
 				
-Type ::= IDENTIFICATOR
+Type ::= (NormalanType) IDENTIFICATOR
 		 |
-		 IDENTIFICATOR DOUBLECOLON IDENTIFICATOR;
+		 (NenormalanType) IDENTIFICATOR DOUBLECOLON IDENTIFICATOR;
 
-Statement ::= DesignatorStatement SEMICOLON
+Statement ::= (StatementDesignator) DesignatorStatement SEMICOLON
 				|
-				IF LEFTPAREN Condition RIGHTPAREN Statement StatementElseStatement
+				(StatementIfElse) IF LEFTPAREN Condition RIGHTPAREN Statement StatementElseStatement
 				|
-				BREAK SEMICOLON
+				(StatementBreak) BREAK SEMICOLON
 				|
-				CONTINUE SEMICOLON
+				(StatementContinue) CONTINUE SEMICOLON
 				|
-				RETURN StatementReturn
+				(ReturnStatement) RETURN StatementReturn
 				|
-				READ LEFTPAREN Designator RIGHTPAREN SEMICOLON
+				(StatementRead) READ LEFTPAREN Designator RIGHTPAREN SEMICOLON
 				|
-				PRINT LEFTPAREN Expr StatementPrint
+				(PrintStatement) PRINT LEFTPAREN Expr StatementPrint
 				|
-				FOR LEFTPAREN InsideFor RIGHTPAREN Statement
+				(StatementFor) FOR LEFTPAREN InsideFor RIGHTPAREN Statement
 				|
-				LEFTBRACE StatementList RIGHTBRACE
+				(MultipleStatements) LEFTBRACE StatementList RIGHTBRACE
 			 	;
 
-StatementElseStatement ::= ELSE Statement
+StatementElseStatement ::= (ElseStatement) ELSE Statement
 							|
-							/*epsilon*/
+							(NoElseStatement) /*epsilon*/
 							;
 
-StatementReturn ::= SEMICOLON
+StatementReturn ::= (StmtReturnSemi) SEMICOLON
 					|
-					Expr SEMICOLON
+					(StmtReturnExpr) Expr SEMICOLON
 					;
 
-StatementPrint ::= (StatementPrintIme) RIGHTPAREN SEMICOLON
+StatementPrint ::= (StmtPrintBasic) RIGHTPAREN SEMICOLON
 					|
-				   COMMA NUMCONSTANT RIGHTPAREN SEMICOLON
+				   (StmtPrintComplex) COMMA NUMCONSTANT RIGHTPAREN SEMICOLON
 				   ;
 
-InsideFor ::= ForDesignatorStatement SEMICOLON ForCondFact SEMICOLON ForDesignatorStatement ;
+InsideFor ::= (InsideFor) ForDesignatorStatement SEMICOLON ForCondFact SEMICOLON ForDesignatorStatement ;
 
-ForCondFact ::= CondFact 
+ForCondFact ::= (ForCndFact) CondFact 
 				|
-				/*epsilon*/
+				(NoForCndFact)/*epsilon*/
 				;
 				
-ForDesignatorStatement ::= InnerForDesignatorStatement
+ForDesignatorStatement ::= (ForDesignatorStmtInner) InnerForDesignatorStatement
 							|
-							/*epsilon*/
+							(NoForDesignatorStmt)/*epsilon*/
 							;
 
-InnerForDesignatorStatement ::= DesignatorStatement InnerForDesignatorStatementList ;
+InnerForDesignatorStatement ::= (InnerForDesignatorStatement) DesignatorStatement InnerForDesignatorStatementList ;
 
-InnerForDesignatorStatementList ::= InnerForDesignatorStatementList COMMA DesignatorStatement
+InnerForDesignatorStatementList ::= (MultipleInnerForDesignatorStatementLists) InnerForDesignatorStatementList COMMA DesignatorStatement
 									|
-									/*epsilon*/
+									(NoInnerForDesignatorStatementLists) /*epsilon*/
 									;
 
-StatementList ::=  StatementList Statement
+StatementList ::= (MultipleStatementsLists) StatementList Statement
 				|
-				/*epsilon */
+				(NoStatementsLists) /*epsilon */
 			 	;
 
-DesignatorStatement ::= Designator FirstDesignator
+DesignatorStatement ::= (DesignatorStmtFirst) Designator FirstDesignator
 						|
-						SecondDesignator EQUAL Designator
+						(DesignatorStmtSecond) SecondDesignator EQUAL Designator
 						;
 
-FirstDesignator ::= Assignop Expr
+FirstDesignator ::= (FirstDesignatorAssignop) Assignop Expr
 					|
-					LEFTPAREN ActParsList RIGHTPAREN
+					(FirstDesignatorActPars)LEFTPAREN ActParsList RIGHTPAREN
 					|
-					INCREMENT
+					(FirstDesignatorInc) INCREMENT
 					|
-					DECREMENT
+					(FirstDesignatorDec) DECREMENT
 					;
 				
-SecondDesignator ::= LEFTBRACKET DesignatorList MULTIPLY Designator RIGHTBRACKET ;
+SecondDesignator ::= (SecondDesignator) LEFTBRACKET DesignatorList MULTIPLY Designator RIGHTBRACKET ;
 
-DesignatorList ::= DesignatorList COMMA OneDesignator
+DesignatorList ::= (MultipleDesignatorLists) DesignatorList COMMA OneDesignator
 					|
-					OneDesignator
+					(OneDsg) OneDesignator
 					;
 					
-OneDesignator ::= Designator 
+OneDesignator ::= (OneDesignatorDsg) Designator 
 					|
-					/*epsilon*/
+					(NoDesignator) /*epsilon*/
 					;
 					
-ActPars ::= ActPars COMMA Expr
+ActPars ::= (MultipleActPars) ActPars COMMA Expr
 			|
-			Expr
+			(ActParsExpr) Expr
 			;
 			
-Condition ::= Condition OR CondTerm
+Condition ::= (ConditionOr) Condition OR CondTerm
 				|
-				CondTerm
+				(ConditionCondTerm) CondTerm
 				|
-				error RIGHTPAREN:l   {: parser.report_error("Greska kod logickog izraza unutar if konstrukcije na liniji. " + lleft, null); :} 
+				(ConditionError) error RIGHTPAREN:l   {: parser.report_error("Greska kod logickog izraza unutar if konstrukcije na liniji. " + lleft, null); :} 
 				;
 				
-CondTerm ::= CondTerm AND CondFact
+CondTerm ::= (CondTermAnd) CondTerm AND CondFact
 			|
-			CondFact
+			(CondTermFact) CondFact
 			;
 
-CondFact ::= Expr Relop Expr
-			|
-			Expr
-			;
+CondFact ::= (CondFact) Expr CondFactExprRelopExpr ;
 			
-Expr ::= Term AddopTermList
+			
+CondFactExprRelopExpr ::= (CondFactComplex) Relop Expr
+							|
+							(CondFactSimple) /*epsilon*/
+							;
+			
+Expr ::= (ExprTerm) Term AddopTermList
 		|
-		MINUS Term AddopTermList
+		(ExprMinus) MINUS Term AddopTermList
 		;
 
-AddopTermList ::= AddopTermList Addop Term
+AddopTermList ::= (MultipleAddopTerms) AddopTermList Addop Term
 				|
-				/*epsilon*/
+				(NoAddopTermLists)/*epsilon*/
 				;
 				
-Term ::= Factor FactorMulopList ;
+Term ::= (Term) Factor FactorMulopList ;
 
-FactorMulopList ::= FactorMulopList Mulop Factor
+FactorMulopList ::= (MultipleFactorMulopLists) FactorMulopList Mulop Factor
 					|
-					/*epsilon*/
+					(NoFactorMulopList) /*epsilon*/
 					;
 
-Factor ::= Designator LEFTPAREN ActParsList RIGHTPAREN
+Factor ::= (FactorDesignator) Designator FactorDesignatorActParsList
 			|
-			Designator
+			(FactorNumCnst) NUMCONSTANT
 			|
-			NUMCONSTANT
+			(FactorCharCnst)CHARCONSTANT
 			|
-			CHARCONSTANT
+			(FactorBoolCnst)BOOLCONSTANT
 			|
-			BOOLCONSTANT
+			(FactorNew) NEW Type FactorNewType
 			|
-			NEW Type FactorNewType
-			|
-			LEFTPAREN Expr RIGHTPAREN
+			(FactorExpr) LEFTPAREN Expr RIGHTPAREN
 			;
+			
+FactorDesignatorActParsList ::= (ParenPars) LEFTPAREN ActParsList RIGHTPAREN
+								|
+								(NoParenPars) /*epsilon*/
+								;
 	
-FactorNewType ::= LEFTBRACKET Expr RIGHTBRACKET
+FactorNewType ::= (FactorNewTypeBracket) LEFTBRACKET Expr RIGHTBRACKET
 				  |
-				  LEFTPAREN ActPars RIGHTPAREN
+				 (FactorNewTypeParen) LEFTPAREN ActPars RIGHTPAREN
 				  ;
 		
-ActParsList ::= ActPars
+ActParsList ::= (ActParsComplex) ActPars
 				|
-				/*epsilon*/
+				(NoActPars) /*epsilon*/
 				;
 
-Designator ::= 	IDENTIFICATOR DesignatorIdentificator;
+Designator ::= (Designator) IDENTIFICATOR DesignatorIdentificator;
 			
-DesignatorIdentificator ::= DOUBLECOLON IDENTIFICATOR IdentExpressList
+DesignatorIdentificator ::= (DesignatorIdentificatorComplex) DOUBLECOLON IDENTIFICATOR IdentExpressList
 							|
-							IdentExpressList
+							(DesignatorIdentificatorSimple) IdentExpressList
 							;
 
-IdentExpressList ::= IdentExpressList IdentExpressListElem
+IdentExpressList ::= (MultiplesIdentExpresses) IdentExpressList IdentExpressListElem
 					|
-					/*epsilon*/
+					(NoIdentExpresses)/*epsilon*/
 					;
 
-IdentExpressListElem ::= DOT IDENTIFICATOR
+IdentExpressListElem ::= (IdentExpressListElemIdent) DOT IDENTIFICATOR
 						 |
-						 LEFTBRACKET Expr RIGHTBRACKET
+						 (IdentExpressListElemExpr) LEFTBRACKET Expr RIGHTBRACKET
 						 ;
 
-Label ::= IDENTIFICATOR ;
+Label ::= (Label) IDENTIFICATOR ;
 
-Assignop ::= EQUAL
+Assignop ::= (AssignopEqual) EQUAL
 			|
-			error SEMICOLON:l {: parser.report_error("Greska kod dodele vrednosti na liniji " + lleft, null); :}
+			(AssignopError)error SEMICOLON:l {: parser.report_error("Greska kod dodele vrednosti na liniji " + lleft, null); :}
 			;
 
-Relop ::= ISEQUAL | NOTEQUAL | GREATER | GREATEREQUAL | LESS | LESSEQUAL ;
+Relop ::=  (RelopEqual)ISEQUAL 
+			| 
+			(RelopNotEqual)NOTEQUAL 
+			| 
+			(RelopGrt)GREATER 
+			| 
+			(RelopGrtEqual)GREATEREQUAL 
+			| 
+			(RelopLess)LESS 
+			| 
+			(RelopLessEqual)LESSEQUAL 
+			;
 
-Addop ::= PLUS | MINUS ;
+Addop ::= (AddopPlus)PLUS 
+		| 
+		(AddopMinus)MINUS 
+		;
 
-Mulop ::= MULTIPLY | DIVIDE | MODUO ;
+Mulop ::= (MulopMul) MULTIPLY 
+		| 
+		(MulopDiv)DIVIDE 
+		| 
+		(MulopMod)MODUO 
+		;
