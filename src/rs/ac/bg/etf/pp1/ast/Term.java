@@ -1,15 +1,30 @@
 // generated with ast extension for cup
 // version 0.8
-// 25/0/2024 18:36:53
+// 4/1/2024 18:13:15
 
 
-package src.rs.ac.bg.etf.pp1.ast;
+package rs.ac.bg.etf.pp1.ast;
 
-public abstract class Term implements SyntaxNode {
+public class Term implements SyntaxNode {
 
     private SyntaxNode parent;
-
     private int line;
+    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
+
+    private FactorMulopList FactorMulopList;
+
+    public Term (FactorMulopList FactorMulopList) {
+        this.FactorMulopList=FactorMulopList;
+        if(FactorMulopList!=null) FactorMulopList.setParent(this);
+    }
+
+    public FactorMulopList getFactorMulopList() {
+        return FactorMulopList;
+    }
+
+    public void setFactorMulopList(FactorMulopList FactorMulopList) {
+        this.FactorMulopList=FactorMulopList;
+    }
 
     public SyntaxNode getParent() {
         return parent;
@@ -27,11 +42,37 @@ public abstract class Term implements SyntaxNode {
         this.line=line;
     }
 
-    public abstract void accept(Visitor visitor);
-    public abstract void childrenAccept(Visitor visitor);
-    public abstract void traverseTopDown(Visitor visitor);
-    public abstract void traverseBottomUp(Visitor visitor);
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-    public String toString() { return toString(""); }
-    public abstract String toString(String tab);
+    public void childrenAccept(Visitor visitor) {
+        if(FactorMulopList!=null) FactorMulopList.accept(visitor);
+    }
+
+    public void traverseTopDown(Visitor visitor) {
+        accept(visitor);
+        if(FactorMulopList!=null) FactorMulopList.traverseTopDown(visitor);
+    }
+
+    public void traverseBottomUp(Visitor visitor) {
+        if(FactorMulopList!=null) FactorMulopList.traverseBottomUp(visitor);
+        accept(visitor);
+    }
+
+    public String toString(String tab) {
+        StringBuffer buffer=new StringBuffer();
+        buffer.append(tab);
+        buffer.append("Term(\n");
+
+        if(FactorMulopList!=null)
+            buffer.append(FactorMulopList.toString("  "+tab));
+        else
+            buffer.append(tab+"  null");
+        buffer.append("\n");
+
+        buffer.append(tab);
+        buffer.append(") [Term]");
+        return buffer.toString();
+    }
 }

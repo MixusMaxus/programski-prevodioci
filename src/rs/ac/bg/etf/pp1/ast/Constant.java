@@ -1,15 +1,17 @@
 // generated with ast extension for cup
 // version 0.8
-// 25/0/2024 18:36:53
+// 4/1/2024 18:13:15
 
 
-package src.rs.ac.bg.etf.pp1.ast;
+package rs.ac.bg.etf.pp1.ast;
 
 public abstract class Constant implements SyntaxNode {
 
     private SyntaxNode parent;
 
     private int line;
+
+    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
 
     public SyntaxNode getParent() {
         return parent;
