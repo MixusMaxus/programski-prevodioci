@@ -73,6 +73,18 @@ public class CodeGenerator extends VisitorAdaptor {
 		 storeDesignator(designatorIncrement.getDesignator().obj);
 	 }
 	 
+//	 DesignatorStatement ::= (DesignatorIncDobl) Designator INCDOBL
+	 public void visit(DesignatorIncDobl designatorIncDobl) {
+		 if (designatorIncDobl.getDesignator().obj.getKind() == Obj.Elem) {
+			 Code.put(Code.dup2);
+		 }
+		 
+		 loadDesignator(designatorIncDobl.getDesignator().obj);
+		 Code.loadConst(2);
+		 Code.put(Code.add);
+		 storeDesignator(designatorIncDobl.getDesignator().obj);
+	 }
+	 
 //	 DesignatorStatement ::= (DesignatorDecrement) Designator DECREMENT
 	 public void visit(DesignatorDecrement designatorDecrement) {
 		 if (designatorDecrement.getDesignator().obj.getKind() == Obj.Elem) {
@@ -164,7 +176,7 @@ public class CodeGenerator extends VisitorAdaptor {
 			 Code.put(Code.add);
 		 }
 		 else {
-			Code.put(Code.sub);
+			 Code.put(Code.sub);
 		 } 
 	 }
 	 
@@ -177,8 +189,46 @@ public class CodeGenerator extends VisitorAdaptor {
 		 else if (mul instanceof MulopDiv) {
 			 Code.put(Code.div);
 		 }
-		 else {
+		 else if (mul instanceof MulopMod){
 			 Code.put(Code.rem);
+		 }
+		 else if (mul instanceof MulopOperator){
+			   Code.put(Code.dup2);
+			   Code.put(Code.dup2);
+			   Code.put(Code.mul);
+			   Code.loadConst(2);
+			   Code.put(Code.mul);
+			   Code.put(Code.dup2);
+			   Code.put(Code.pop);
+			   Code.put(Code.dup);
+			   Code.put(Code.mul);
+			   Code.put(Code.add);
+			   Code.put(Code.add);
+			   Code.put(Code.dup2);
+			   Code.put(Code.pop);
+			   Code.put(Code.dup);
+			   Code.put(Code.mul);
+			   Code.put(Code.add);
+			   Code.put(Code.add);
+			   Code.put(Code.sub);
+			   Code.put(Code.neg);
+			   Code.put(Code.sub);
+			   Code.put(Code.neg);
+		 }
+		 else {
+			 Code.put(Code.dup2);
+			 Code.put(Code.dup2);
+			 Code.put(Code.pop);
+			 Code.put(Code.arraylength);
+			 Code.put(Code.sub);
+			 Code.put(Code.neg);
+			 Code.put(Code.aload);
+			 Code.put(Code.dup_x2);
+			 Code.put(Code.pop);
+			 Code.loadConst(1);
+			 Code.put(Code.sub);
+			 Code.put(Code.aload);
+			 Code.put(Code.add);
 		 }
 	 }
 //	 Expr ::= (ExprMinus) MINUS AddopTermList
@@ -222,6 +272,39 @@ public class CodeGenerator extends VisitorAdaptor {
 				if (nesto instanceof MultiplesIdentExpresses)
 					Code.load(designatorName.obj);
 			}
+		}
+		
+//		(FactorSum) SUM LEFTPAREN Expr RIGHTPAREN
+		public void visit(FactorSum factorSum) {
+			Obj sum = Tab.insert(Obj.Var, "sum", new Struct(Struct.Int));
+			Code.loadConst(0);
+			Code.store(sum);
+			Code.loadConst(0);
+			Code.put(Code.dup);
+			 // skok
+			 Code.put(Code.pop);
+			 Code.put(Code.dup2);
+			 
+			 //print
+			 Code.put(Code.aload);
+			 Code.load(sum);
+			 Code.put(Code.add);
+			 Code.store(sum);
+			 
+			 //inc indeksa
+			 Code.loadConst(1); 
+			 Code.put(Code.add); //adr i+ 
+			 
+			 Code.put(Code.dup2);  // adr i+ adr i+
+			 Code.put(Code.pop);
+			 Code.put(Code.arraylength);   // adr i+ arrLen
+			 Code.put(Code.dup2);  // adr i+ arrLen i+ arrLen
+			 Code.putFalseJump(Code.ge, Code.pc - 12);  // adr i+ arrLen
+			 
+			 Code.put(Code.pop);
+			 Code.put(Code.pop);
+			 Code.put(Code.pop);
+			 Code.load(sum);
 		}
 	 
 //	 (FactorRange) RANGE LEFTPAREN Expr RIGHTPAREN

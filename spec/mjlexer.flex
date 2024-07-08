@@ -49,6 +49,7 @@ import java_cup.runtime.Symbol;
 "static" 	{return new_symbol(sym.STATIC, yytext());}
 "range"		{return new_symbol(sym.RANGE, yytext());}
 "in"		{return new_symbol(sym.IN, yytext());}
+"sum" 		{return new_symbol(sym.SUM, yytext());}
 
 "+" 	{return new_symbol(sym.PLUS, yytext());}
 "-" 	{return new_symbol(sym.MINUS, yytext());}
@@ -79,6 +80,8 @@ import java_cup.runtime.Symbol;
 "}" 	{return new_symbol(sym.RIGHTBRACE, yytext());}
 "=>" 	{return new_symbol(sym.ARROW, yytext());}
 "+++"   {return new_symbol(sym.INCDOBL, yytext());}
+"@"	{return new_symbol(sym.OPERATOR, yytext());}
+"^"	{return new_symbol(sym.SUSEDI, yytext());}
 
 "//"               	{yybegin(COMMENT);} 
 <COMMENT> .        	{yybegin(COMMENT);}

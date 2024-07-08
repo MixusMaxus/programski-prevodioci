@@ -415,6 +415,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 	
+//	(FactorSum) SUM LEFTPAREN Expr RIGHTPAREN
+	public void visit(FactorSum factorSum) {
+		if (factorSum.getExpr().struct.getKind() != Struct.Array || factorSum.getExpr().struct.getElemType() != Tab.intType)
+			report_error("Semanticka greska na liniji " + factorSum.getLine() + ": Expr za sum funkciju mora biti tipa int i mora biti NIZ!!!!", null);
+	}
+	
 //	====================================================================
 //	Designator Statement
 	
@@ -465,6 +471,22 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		
 		if (designatorObj.getType() != Tab.intType) {
 			report_error("Semanticka greska na liniji " + designatorIncrement.getLine() + ": Designator mora biti tip int", designatorIncrement);
+			return;
+		}
+	}
+	
+//	(DesignatorIncDobl) Designator INCDOBL
+	public void visit(DesignatorIncDobl designatorIncDobl) {
+		Obj designatorObj = designatorIncDobl.getDesignator().obj;
+		int kind = designatorObj.getKind();
+		
+		if (!(kind == Obj.Var || kind == Obj.Fld || kind == Obj.Elem)) {
+			report_error("Semanticka greska na liniji " + designatorIncDobl.getLine() + ": Designator mora biti polje ili element niza ili promenljiva", designatorIncDobl);
+			return;
+		}
+		
+		if (designatorObj.getType() != Tab.intType) {
+			report_error("Semanticka greska na liniji " + designatorIncDobl.getLine() + ": Designator mora biti tip int", designatorIncDobl);
 			return;
 		}
 	}
@@ -626,7 +648,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		FactorMulopList list = multipleFactorMulopLists.getFactorMulopList();
 		Factor fct = multipleFactorMulopLists.getFactor();
 		
-		if (!(fct.struct == Tab.intType && list.struct == Tab.intType)) {
+		if (!(fct.struct == Tab.intType && (list.struct == Tab.intType || (list.struct.getKind() == Struct.Array && list.struct.getElemType() == Tab.intType)))) {
 			report_error("Semanticka greska na liniji " + multipleFactorMulopLists.getLine() + ": Mnozenje i deljenje operator moze stajati samo uz tip INT", multipleFactorMulopLists);
 		}
 		multipleFactorMulopLists.struct = Tab.intType;

@@ -13,13 +13,9 @@ program test301
 	void main()	
 		int bodovi;
 		bool bt;
-		int proba;
 	{
-		niz = range(pet);
-		niz2 = range(3);
-		print(niz);
-		print(niz2);
+		niz = range(5);
+		bodovi = sum(niz);
+		print(bodovi);
 	}
 }
-
-

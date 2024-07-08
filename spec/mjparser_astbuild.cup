@@ -56,7 +56,7 @@ terminal CONST, VOID, NEW, CLASS, EXTENDS, DOT, ARROW, IN ;
 
 terminal EQUAL, ISEQUAL, NOTEQUAL, GREATER, GREATEREQUAL, LESS, LESSEQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODUO, DOUBLECOLON ;
 
-terminal IF, ELSE, BREAK, CONTINUE, RETURN, READ, PRINT, FOR, INCREMENT, DECREMENT, AND, OR, COLON, INCDOBL ;
+terminal IF, ELSE, BREAK, CONTINUE, RETURN, READ, PRINT, FOR, INCREMENT, DECREMENT, AND, OR, COLON, INCDOBL, OPERATOR, SUSEDI, SUM ;
 
 nonterminal DeclarationList DeclarationList;
 nonterminal Declaration Declaration;
@@ -351,6 +351,8 @@ Factor ::= (FactorDesignator) Designator:D1 FactorDesignatorActParsList:F2 {: RE
 			(FactorExpr) LEFTPAREN Expr:E1 RIGHTPAREN {: RESULT=new FactorExpr(E1); RESULT.setLine(E1left); :}
 			|
 			(FactorRange) RANGE LEFTPAREN Expr:E1 RIGHTPAREN {: RESULT=new FactorRange(E1); RESULT.setLine(E1left); :}
+			|
+			(FactorSum) SUM LEFTPAREN Expr:E1 RIGHTPAREN {: RESULT=new FactorSum(E1); RESULT.setLine(E1left); :}
 			;
 			
 FactorDesignatorActParsList ::= (ParenPars) LEFTPAREN ActParsList:A1 RIGHTPAREN {: RESULT=new ParenPars(A1); RESULT.setLine(A1left); :}
@@ -402,4 +404,8 @@ Mulop ::= (MulopMul) MULTIPLY {: RESULT=new MulopMul(); :}
 		(MulopDiv)DIVIDE {: RESULT=new MulopDiv(); :} 
 		| 
 		(MulopMod)MODUO {: RESULT=new MulopMod(); :} 
+		|
+		(MulopOperator)OPERATOR {: RESULT=new MulopOperator(); :}
+		|
+		(MulopSusedi) SUSEDI {: RESULT=new MulopSusedi(); :}
 		;

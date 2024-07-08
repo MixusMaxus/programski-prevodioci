@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 4/1/2024 18:13:15
+// 27/5/2024 22:55:38
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -11,22 +11,22 @@ public class Designator implements SyntaxNode {
     private int line;
     public rs.etf.pp1.symboltable.concepts.Obj obj = null;
 
-    private Scope Scope;
+    private DesignatorName DesignatorName;
     private IdentExpressList IdentExpressList;
 
-    public Designator (Scope Scope, IdentExpressList IdentExpressList) {
-        this.Scope=Scope;
-        if(Scope!=null) Scope.setParent(this);
+    public Designator (DesignatorName DesignatorName, IdentExpressList IdentExpressList) {
+        this.DesignatorName=DesignatorName;
+        if(DesignatorName!=null) DesignatorName.setParent(this);
         this.IdentExpressList=IdentExpressList;
         if(IdentExpressList!=null) IdentExpressList.setParent(this);
     }
 
-    public Scope getScope() {
-        return Scope;
+    public DesignatorName getDesignatorName() {
+        return DesignatorName;
     }
 
-    public void setScope(Scope Scope) {
-        this.Scope=Scope;
+    public void setDesignatorName(DesignatorName DesignatorName) {
+        this.DesignatorName=DesignatorName;
     }
 
     public IdentExpressList getIdentExpressList() {
@@ -58,18 +58,18 @@ public class Designator implements SyntaxNode {
     }
 
     public void childrenAccept(Visitor visitor) {
-        if(Scope!=null) Scope.accept(visitor);
+        if(DesignatorName!=null) DesignatorName.accept(visitor);
         if(IdentExpressList!=null) IdentExpressList.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
-        if(Scope!=null) Scope.traverseTopDown(visitor);
+        if(DesignatorName!=null) DesignatorName.traverseTopDown(visitor);
         if(IdentExpressList!=null) IdentExpressList.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
-        if(Scope!=null) Scope.traverseBottomUp(visitor);
+        if(DesignatorName!=null) DesignatorName.traverseBottomUp(visitor);
         if(IdentExpressList!=null) IdentExpressList.traverseBottomUp(visitor);
         accept(visitor);
     }
@@ -79,8 +79,8 @@ public class Designator implements SyntaxNode {
         buffer.append(tab);
         buffer.append("Designator(\n");
 
-        if(Scope!=null)
-            buffer.append(Scope.toString("  "+tab));
+        if(DesignatorName!=null)
+            buffer.append(DesignatorName.toString("  "+tab));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");

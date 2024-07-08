@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 4/1/2024 18:13:15
+// 27/5/2024 22:55:38
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -22,7 +22,6 @@ public interface Visitor {
     public void visit(DesignatorIdentificator DesignatorIdentificator);
     public void visit(Variable Variable);
     public void visit(StatementList StatementList);
-    public void visit(NamespaceList NamespaceList);
     public void visit(Addop Addop);
     public void visit(InnerForDesignatorStatementList InnerForDesignatorStatementList);
     public void visit(Factor Factor);
@@ -31,8 +30,8 @@ public interface Visitor {
     public void visit(CondFactExprRelopExpr CondFactExprRelopExpr);
     public void visit(FormParsList FormParsList);
     public void visit(Condition Condition);
-    public void visit(Scope Scope);
     public void visit(FactorNewType FactorNewType);
+    public void visit(IfMaybe IfMaybe);
     public void visit(ActParsList ActParsList);
     public void visit(Expr Expr);
     public void visit(IdentExpressList IdentExpressList);
@@ -50,6 +49,8 @@ public interface Visitor {
     public void visit(MethodDeclList MethodDeclList);
     public void visit(StatementReturn StatementReturn);
     public void visit(AddopTermList AddopTermList);
+    public void visit(MulopSusedi MulopSusedi);
+    public void visit(MulopOperator MulopOperator);
     public void visit(MulopMod MulopMod);
     public void visit(MulopDiv MulopDiv);
     public void visit(MulopMul MulopMul);
@@ -64,16 +65,16 @@ public interface Visitor {
     public void visit(AssignopError AssignopError);
     public void visit(AssignopEqual AssignopEqual);
     public void visit(Label Label);
-    public void visit(IdentExpressListElem IdentExpressListElem);
     public void visit(NoIdentExpresses NoIdentExpresses);
     public void visit(MultiplesIdentExpresses MultiplesIdentExpresses);
-    public void visit(ScopeLocal ScopeLocal);
-    public void visit(ScopeNamespace ScopeNamespace);
+    public void visit(DesignatorName DesignatorName);
     public void visit(Designator Designator);
     public void visit(NoActPars NoActPars);
     public void visit(ActParsComplex ActParsComplex);
     public void visit(NoParenPars NoParenPars);
     public void visit(ParenPars ParenPars);
+    public void visit(FactorSum FactorSum);
+    public void visit(FactorRange FactorRange);
     public void visit(FactorExpr FactorExpr);
     public void visit(FactorNewArray FactorNewArray);
     public void visit(FactorBoolCnst FactorBoolCnst);
@@ -101,7 +102,11 @@ public interface Visitor {
     public void visit(OneDesignatorDsg OneDesignatorDsg);
     public void visit(OneDsg OneDsg);
     public void visit(MultipleDesignatorLists MultipleDesignatorLists);
+    public void visit(NoIF NoIF);
+    public void visit(ActualIf ActualIf);
+    public void visit(DSListComprehension DSListComprehension);
     public void visit(MultipleAssignements MultipleAssignements);
+    public void visit(DesignatorIncDobl DesignatorIncDobl);
     public void visit(DesignatorDecrement DesignatorDecrement);
     public void visit(DesignatorIncrement DesignatorIncrement);
     public void visit(DesignatorFunctionCall DesignatorFunctionCall);
@@ -116,8 +121,8 @@ public interface Visitor {
     public void visit(NoForCndFact NoForCndFact);
     public void visit(ForCndFact ForCndFact);
     public void visit(InsideFor InsideFor);
-    public void visit(StmtPrintComplex StmtPrintComplex);
     public void visit(StmtPrintBasic StmtPrintBasic);
+    public void visit(StmtPrintComplex StmtPrintComplex);
     public void visit(StmtReturnVoid StmtReturnVoid);
     public void visit(StmtReturnExpr StmtReturnExpr);
     public void visit(NoElseStatement NoElseStatement);
@@ -166,10 +171,6 @@ public interface Visitor {
     public void visit(DeclarationConstDecl DeclarationConstDecl);
     public void visit(NoDeclarations NoDeclarations);
     public void visit(MultipleDeclarations MultipleDeclarations);
-    public void visit(NamespaceName NamespaceName);
-    public void visit(Namespace Namespace);
-    public void visit(NoNamespaces NoNamespaces);
-    public void visit(MultipleNamespaces MultipleNamespaces);
     public void visit(ProgramName ProgramName);
     public void visit(Program Program);
 
